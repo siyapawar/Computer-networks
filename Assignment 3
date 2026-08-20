@@ -1,0 +1,123 @@
+// Class clasification Code
+
+#include<bits/stdc++.h>
+using namespace std;
+
+int main() {
+    int n1,n2,n3,n4;
+    char c1,c2,c3;
+    
+    cout<<"Enter IP address: ";
+    cin>>n1>>c1>>n2>>c2>>n3>>c3>>n4;
+    
+    if(c1!='.' && c2!='.' && c3!='.'){
+        cout<<"Invalid IP address";
+    }
+    
+    if(n1<0 && n1>255 && n2<0 && n2>255 && n3<0 && n3>255 && n4<0 && n4>255 ){
+        cout<<"Invalid IP address";
+    }
+    
+    if(n1<=126 && n1>=0){
+        cout << "Class A" << endl;
+        cout<<"IP range : 0-127"<<endl;
+        cout << "Network ID : " << n1 << endl;
+        cout << "Host ID    : " << n2 << "." << n3 << "." << n4 << endl;
+        cout << "No. of Networks : 2^7 = 128" << endl;
+        cout << "Hosts per Network : 2^24 - 2 = 16777214" << endl<<endl;
+    }
+    else if(n1>=128 && n1<=191){
+        cout<<"Class B"<<endl;
+        cout<<"IP range : 128-191";
+        cout<<"Network ID : "<<n1<<"."<<n2<<endl;
+        cout<<"Host ID : "<<n3<<"."<<n4<<endl;
+        cout<<"No. of Networks : 2^14 = 16,384  (14 because 2 bits are dized 10, so 16-2 = 14)"<<endl;
+        cout<<"Hosts per Network : 2^16 - 2 = 65,534 "<<endl<<endl;
+    }
+    else if(n1>=192 && n1<=223){
+        cout<<"Class C"<<endl;
+        cout<<"IP range : 192-223";
+        cout<<"Network ID : "<<n1<<"."<<n2<<"."<<n3;
+        cout<<"Host ID : "<<n4;
+        cout<<"No. of Networks : 2^21 = 20,97,152 (21 because 3 bits are fixed 110, so 24-3 = 21)";
+        cout<<"Hosts per Network : 2^8 - 2 = 254 "<<endl<<endl;
+    }
+    else if(n1>=224 && n1<=239){
+        cout<<"Class D"<<endl;
+        cout<<"Used for Multicasting"<<endl;
+    }
+    else if(n1>=240 && n1<=255){
+        cout<<"Class E"<<endl;
+        cout<<"Reserved for Experimentation";
+    }
+    else if(n1 == 127){
+        cout<<"Class A"<<endl;
+        cout<<"IP range : 0-127"<<endl;
+        cout << "Network ID : " << n1 << endl;
+        cout << "Host ID    : " << n2 << "." << n3 << "." << n4 << endl;
+        cout << "No. of Networks : 2^7 = 128" << endl;
+        cout << "Hosts per Network : 2^24 - 2 = 16777214" << endl<<endl;
+        cout<<"~127.x.x.x is specifically reserved for loopback address\nloopback address is a special IP address that allows a computer to send network packets to itself without using any physical network."<<endl;
+    }
+    
+    cout<<"~Subnet: A subnet (subnetwork) is a smaller logical network created by dividing a larger IP network into multiple smaller networks."<<endl;
+    
+    cout<<"~Subnet Mask: A subnet mask is a 32-bit number used to identify which part of an IP address represents the network (or subnet) and which part represents the host.";
+
+    return 0;
+}
+
+
+
+
+//Subnet Selection Code
+
+#include <iostream>
+#include <cmath>
+#include <string>
+using namespace std;
+int main() {
+int o1, o2, o3, o4;
+char dot;
+int cidr;
+cout << "Enter base IP address (e.g., 192.168.10.0): ";
+cin >> o1 >> dot >> o2 >> dot >> o3 >> dot >> o4;
+cout << "Enter CIDR prefix (e.g., 26 for /26): ";
+cin >> cidr;
+endl;
+if (cidr < 24 || cidr > 30) {
+cout << "Error: This program currently supports Class C subnetting (CIDR 24 to 30).
+" <<
+return 1;
+}
+int hostBits = 32 - cidr;
+int blockSize = pow(2, hostBits);
+int numSubnets = 256 / blockSize;
+int usableHosts = blockSize - 2;
+int lastOctetMask = 256 - blockSize;
+cout << "\n--- General Subnet Information ---
+" << endl;
+cout << "Calculated Subnet Mask : 255.255.255.
+" << lastOctetMask << endl;
+cout << "Total Usable Hosts : " << usableHosts << " per subnet" << endl;
+cout << "Total Subnets Created : " << numSubnets << "\n" << endl;
+for (int i = 0; i < numSubnets; ++i) {
+int network = i * blockSize;
+int firstHost = network + 1;
+int lastHost = network + usableHosts;
+int broadcast = network + blockSize - 1;
+cout << "=========================================" << endl;
+cout << "Subnet " << (i + 1) << endl;
+cout << "=========================================" << endl;
+cout << "Network Address : " << o1 << "." << o2 << "." << o3 << "." << network << endl;
+cout << "First Host : " << o1 << "." << o2 << "." << o3 << "." << firstHost << endl;
+cout << "Last Host : " << o1 << "." << o2 << "." << o3 << "." << lastHost << endl;
+cout << "Broadcast Address : " << o1 << "." << o2 << "." << o3 << "." << broadcast << endl;
+cout << "\nUsable IP Addresses:" << endl;
+for (int j = firstHost; j <= lastHost; ++j) {
+cout << " " << o1 << "." << o2 << "." << o3 << "." << j << endl;
+}
+cout << endl;
+}
+return 0;
+}
