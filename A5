@@ -1,0 +1,176 @@
+//server
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+#include <sys/socket.h>
+
+#define PORT 8080
+#define SIZE 1024
+
+int main()
+{
+    int server_fd, client_fd;
+    struct sockaddr_in address;
+    socklen_t addrlen = sizeof(address);
+    char buffer[SIZE];
+    int opt = 1;
+    ssize_t bytes;
+
+    server_fd = socket(AF_INET, SOCK_STREAM, 0);
+
+    if (server_fd == -1) {
+        perror("socket");
+        return 1;
+    }
+
+    setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR,
+               &opt, sizeof(opt));
+
+    memset(&address, 0, sizeof(address));
+    address.sin_family = AF_INET;
+    address.sin_addr.s_addr = INADDR_ANY;
+    address.sin_port = htons(PORT);
+
+    if (bind(server_fd, (struct sockaddr *)&address,
+             sizeof(address)) < 0) {
+        perror("bind");
+        close(server_fd);
+        return 1;
+    }
+
+    if (listen(server_fd, 1) < 0) {
+        perror("listen");
+        close(server_fd);
+        return 1;
+    }
+
+    printf("Server listening on port %d...\n", PORT);
+
+    client_fd = accept(server_fd,
+                       (struct sockaddr *)&address,
+                       &addrlen);
+
+    if (client_fd < 0) {
+        perror("accept");
+        close(server_fd);
+        return 1;
+    }
+
+    printf("Client connected.\n");
+
+    while (1) {
+        memset(buffer, 0, sizeof(buffer));
+        bytes = recv(client_fd, buffer, SIZE - 1, 0);
+
+        if (bytes <= 0)
+            break;
+
+        buffer[bytes] = '\0';
+        printf("Client: %s\n", buffer);
+
+        if (strcmp(buffer, "bye") == 0)
+            break;
+
+        printf("Server: ");
+        if (fgets(buffer, sizeof(buffer), stdin) == NULL)
+            break;
+
+        buffer[strcspn(buffer, "\n")] = '\0';
+
+        if (send(client_fd, buffer, strlen(buffer), 0) < 0)
+            break;
+
+        if (strcmp(buffer, "bye") == 0)
+            break;
+    }
+
+    close(client_fd);
+    close(server_fd);
+
+    printf("Chat ended.\n");
+    return 0;
+}
+
+
+
+
+
+//CLIENT SIDE
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+#include <sys/socket.h>
+
+#define PORT 8080
+#define SIZE 1024
+
+int main()
+{
+    int sock;
+    struct sockaddr_in server;
+    char buffer[SIZE];
+    ssize_t bytes;
+
+    sock = socket(AF_INET, SOCK_STREAM, 0);
+
+    if (sock == -1) {
+        perror("socket");
+        return 1;
+    }
+
+    memset(&server, 0, sizeof(server));
+    server.sin_family = AF_INET;
+    server.sin_port = htons(PORT);
+
+    if (inet_pton(AF_INET, "127.0.0.1",
+                  &server.sin_addr) != 1) {
+        printf("Invalid server address.\n");
+        close(sock);
+        return 1;
+    }
+
+    if (connect(sock, (struct sockaddr *)&server,
+                sizeof(server)) < 0) {
+        perror("connect");
+        close(sock);
+        return 1;
+    }
+
+    printf("Connected to server. Type bye to exit.\n");
+
+    while (1) {
+        printf("Client: ");
+
+        if (fgets(buffer, sizeof(buffer), stdin) == NULL)
+            break;
+
+        buffer[strcspn(buffer, "\n")] = '\0';
+
+        if (send(sock, buffer, strlen(buffer), 0) < 0)
+            break;
+
+        if (strcmp(buffer, "bye") == 0)
+            break;
+
+        memset(buffer, 0, sizeof(buffer));
+        bytes = recv(sock, buffer, SIZE - 1, 0);
+
+        if (bytes <= 0)
+            break;
+
+        buffer[bytes] = '\0';
+        printf("Server: %s\n", buffer);
+
+        if (strcmp(buffer, "bye") == 0)
+            break;
+    }
+
+    close(sock);
+    printf("Disconnected.\n");
+    return 0;
+}
